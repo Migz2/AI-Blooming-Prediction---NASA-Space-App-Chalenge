@@ -1,5 +1,5 @@
 """
-Sistema de previsão de pico de floração e análise de tendências
+Flowering prediction system and trend analysis
 """
 
 import pandas as pd
@@ -17,52 +17,52 @@ warnings.filterwarnings('ignore')
 
 class BloomingForecast:
     def __init__(self):
-        """Inicializa o sistema de previsão de floração"""
+        """Initialize the flowering prediction system"""
         self.predictor = BloomingPredictor()
         self.feature_engineer = FeatureEngineer()
         self.weather_collector = WeatherDataCollector()
         
     def generate_forecast(self, latitude, longitude, days_ahead=14):
         """
-        Gera previsão completa de floração para os próximos dias
+        Generate complete flowering forecast for the next days
         
         Args:
-            latitude (float): Latitude da localização
-            longitude (float): Longitude da localização
-            days_ahead (int): Número de dias para prever
+            latitude (float): Latitude of the location
+            longitude (float): Longitude of the location
+            days_ahead (int): Number of days to predict
             
         Returns:
-            dict: Previsão completa de floração
+            dict: Complete flowering forecast
         """
-        print(f"Gerando previsão de floração para {days_ahead} dias...")
+        print(f"Generating flowering forecast for {days_ahead} days...")
         
-        # Coleta dados de previsão meteorológica
+        # Collect forecast weather data
         forecast_data = self.weather_collector.collect_forecast_data(
             latitude, longitude, days=days_ahead
         )
         
         if forecast_data is None:
-            return {"error": "Não foi possível coletar dados meteorológicos"}
+            return {"error": "Unable to collect weather data"}
         
-        # Processa features
+        # Process features
         processed_data = self.feature_engineer.process_weather_data(forecast_data)
         
-        # Carrega modelo treinado
+        # Load trained model
         try:
             self.predictor.load_model()
         except FileNotFoundError:
-            return {"error": "Modelo não encontrado. Execute o treinamento primeiro."}
+            return {"error": "Model not found. Execute the training first."}
         
-        # Prediz probabilidades de floração
+        # Predict flowering probabilities
         probabilities = self.predictor.predict_blooming_probability(processed_data)
         
-        # Analisa pico de floração
+        # Analyze the peak of flowering
         peak_analysis = self.analyze_peak_blooming(processed_data, probabilities)
         
-        # Gera insights
+        # Generate insights
         insights = self.generate_insights(processed_data, probabilities)
         
-        # Cria visualizações
+        # Create visualizations
         self.create_visualizations(processed_data, probabilities, peak_analysis)
         
         return {
@@ -75,38 +75,38 @@ class BloomingForecast:
     
     def analyze_peak_blooming(self, df, probabilities):
         """
-        Analisa o pico de floração
+        Analyze the peak of flowering
         
         Args:
-            df (pd.DataFrame): Dados processados
-            probabilities (np.array): Probabilidades de floração
+            df (pd.DataFrame): Processed data
+            probabilities (np.array): Flowering probabilities
             
         Returns:
-            dict: Análise do pico de floração
+            dict: Analysis of the peak of flowering
         """
-        # Encontra o pico
+        # Find the peak
         peak_idx = np.argmax(probabilities)
         peak_date = df.iloc[peak_idx]['date']
-        # Converte para string ISO se for datetime
+        # Convert to ISO string if datetime
         if hasattr(peak_date, 'isoformat'):
             peak_date = peak_date.isoformat()
         elif hasattr(peak_date, 'strftime'):
             peak_date = peak_date.strftime('%Y-%m-%d')
         peak_probability = float(probabilities[peak_idx])
         
-        # Encontra períodos de alta probabilidade
+        # Find periods of high probability
         high_prob_threshold = 0.7
         high_prob_indices = np.where(probabilities >= high_prob_threshold)[0]
         
-        # Calcula estatísticas
+        # Calculate statistics
         avg_probability = np.mean(probabilities)
         max_probability = np.max(probabilities)
         min_probability = np.min(probabilities)
         
-        # Identifica tendências
+        # Identify trends
         trend = self.calculate_trend(probabilities)
         
-        # Encontra janelas de melhor floração
+        # Find the best time windows for flowering
         best_windows = self.find_best_blooming_windows(probabilities, window_size=3)
         
         return {
@@ -124,23 +124,23 @@ class BloomingForecast:
         }
     
     def calculate_trend(self, probabilities):
-        """Calcula tendência das probabilidades"""
+        """Calculate the trend of the probabilities"""
         if len(probabilities) < 2:
-            return "estável"
+            return "stable"
         
-        # Regressão linear simples
+        # Simple linear regression
         x = np.arange(len(probabilities))
         slope = np.polyfit(x, probabilities, 1)[0]
         
         if slope > 0.01:
-            return "crescendo"
+            return "growing"
         elif slope < -0.01:
-            return "decrescendo"
+            return "decreasing"
         else:
-            return "estável"
+            return "stable"
     
     def find_best_blooming_windows(self, probabilities, window_size=3):
-        """Encontra as melhores janelas de tempo para floração"""
+        """Find the best time windows for flowering"""
         if len(probabilities) < window_size:
             return []
         
@@ -149,149 +149,155 @@ class BloomingForecast:
             window_avg = np.mean(probabilities[i:i+window_size])
             window_scores.append((i, window_avg))
         
-        # Ordena por score e retorna top 3
+        # Sort by score and return top 3
         window_scores.sort(key=lambda x: x[1], reverse=True)
         return window_scores[:3]
     
     def calculate_confidence(self, probabilities):
-        """Calcula nível de confiança da previsão"""
-        # Baseado na consistência das probabilidades
+        """Calculate the level of confidence of the forecast"""
+        # Based on the consistency of the probabilities
         std_prob = np.std(probabilities)
         avg_prob = np.mean(probabilities)
         
         if std_prob < 0.1 and avg_prob > 0.5:
-            return "alta"
+            return "high"
         elif std_prob < 0.2:
-            return "média"
+            return "medium"
         else:
-            return "baixa"
+            return "low"
     
     def generate_insights(self, df, probabilities):
-        """Gera insights sobre as condições de floração"""
+        """Generate insights about the conditions of flowering"""
         insights = []
         
-        # Análise de temperatura
+        # Temperature analysis
         avg_temp = df['temperature_2m'].mean()
         if 15 <= avg_temp <= 25:
-            insights.append("Temperatura ideal para floração")
+            insights.append("Ideal temperature for flowering")
         elif avg_temp < 15:
-            insights.append("Temperatura baixa pode atrasar a floração")
+            insights.append("Low temperature can delay flowering")
         else:
-            insights.append("Temperatura alta pode acelerar a floração")
+            insights.append("High temperature can accelerate flowering")
         
-        # Análise de umidade
+        # Humidity analysis
         avg_humidity = df['relative_humidity_2m'].mean()
         if 40 <= avg_humidity <= 70:
-            insights.append("Umidade ideal para floração")
+            insights.append("Ideal humidity for flowering")
         elif avg_humidity < 40:
-            insights.append("Umidade baixa pode prejudicar a floração")
+            insights.append("Low humidity can damage flowering")
         else:
-            insights.append("Umidade alta pode favorecer doenças")
+            insights.append("High humidity can promote diseases")
         
-        # Análise de precipitação
+        # Precipitation analysis
         total_precip = df['precipitation'].sum()
         if 0 < total_precip < 50:
-            insights.append("Precipitação moderada favorece a floração")
+            insights.append("Moderate precipitation promotes flowering")
         elif total_precip == 0:
-            insights.append("Falta de chuva pode prejudicar a floração")
+            insights.append("Low precipitation can damage flowering")
         else:
-            insights.append("Chuva excessiva pode danificar as flores")
+            insights.append("High precipitation can damage flowers")
         
         # Soil analysis removed - using only weather data
         
-        # Análise de luz solar
+        # Sunlight analysis
         avg_sunlight = (100 - df['cloud_cover'].mean()) / 100
         if avg_sunlight > 0.6:
-            insights.append("Boa disponibilidade de luz solar")
+            insights.append("Good sunlight availability")
         else:
-            insights.append("Pouca luz solar pode atrasar a floração")
+            insights.append("Low sunlight can delay flowering")
         
         return insights
     
     def generate_summary(self, peak_analysis, insights):
-        """Gera resumo da previsão"""
+        """Generate summary of the forecast"""
         summary = {
             "recommendation": self.get_recommendation(peak_analysis),
             "key_findings": [
-                f"Pico de floração previsto para: {peak_analysis['peak_date']}",
-                f"Probabilidade máxima: {peak_analysis['peak_probability']:.1%}",
-                f"Tendência: {peak_analysis['trend']}",
-                f"Confiança: {peak_analysis['confidence']}"
+                f"Peak flowering predicted for: {peak_analysis['peak_date']}",
+                f"Maximum probability: {peak_analysis['peak_probability']:.1%}",
+                f"Trend: {peak_analysis['trend']}",
+                f"Confidence: {peak_analysis['confidence']}"
             ],
             "action_items": self.get_action_items(peak_analysis, insights)
         }
         return summary
     
     def get_recommendation(self, peak_analysis):
-        """Gera recomendação baseada na análise"""
+        """Generate recommendation based on the analysis"""
         if peak_analysis['peak_probability'] > 0.8:
-            return "Excelente período para floração! Prepare-se para o pico."
+            return "Excellent period for flowering! Prepare for the peak."
         elif peak_analysis['peak_probability'] > 0.6:
-            return "Bom período para floração. Monitore as condições."
+            return "Good period for flowering. Monitor conditions."
         elif peak_analysis['peak_probability'] > 0.4:
-            return "Período moderado para floração. Algumas flores podem florescer."
+            return "Moderate period for flowering. Some flowers may bloom."
         else:
-            return "Período desfavorável para floração. Aguarde condições melhores."
+            return "Unfavorable period for flowering. Wait for better conditions."
     
     def get_action_items(self, peak_analysis, insights):
-        """Gera itens de ação baseados na análise"""
+        """Generate action items based on the analysis"""
         actions = []
         
-        if peak_analysis['confidence'] == 'baixa':
-            actions.append("Monitore as condições meteorológicas diariamente")
+        if peak_analysis['confidence'] == 'low':
+            actions.append("Monitor weather conditions daily")
         
-        if any("Temperatura baixa" in insight for insight in insights):
-            actions.append("Considere proteger as plantas do frio")
+        if any("Low temperature" in insight for insight in insights):
+            actions.append("Consider protecting plants from cold")
         
-        if any("Umidade baixa" in insight for insight in insights):
-            actions.append("Aumente a irrigação se necessário")
+        if any("Low humidity" in insight for insight in insights):
+            actions.append("Increase irrigation if necessary")
         
-        if any("Pouca luz solar" in insight for insight in insights):
-            actions.append("Remova obstáculos que bloqueiem a luz solar")
+        if any("Low sunlight" in insight for insight in insights):
+            actions.append("Remove obstacles that block sunlight")
         
-        if peak_analysis['trend'] == 'crescendo':
-            actions.append("Prepare-se para o aumento da floração")
+        if peak_analysis['trend'] == 'growing':
+            actions.append("Prepare for the increase in flowering")
         
         return actions
     
     def create_visualizations(self, df, probabilities, peak_analysis):
-        """Cria visualizações da previsão"""
+        """Create visualizations of the forecast"""
         plt.style.use('seaborn-v0_8')
         fig, axes = plt.subplots(2, 2, figsize=(15, 10))
-        fig.suptitle('Previsão de Floração - Análise Completa', fontsize=16, fontweight='bold')
+        fig.suptitle('Flowering Forecast - Complete Analysis', fontsize=16, fontweight='bold')
         
-        # Gráfico 1: Probabilidades de floração ao longo do tempo
-        axes[0, 0].plot(df['date'], probabilities, 'b-', linewidth=2, label='Probabilidade de Floração')
-        axes[0, 0].axhline(y=0.7, color='r', linestyle='--', alpha=0.7, label='Limiar Alto')
-        axes[0, 0].axhline(y=0.5, color='orange', linestyle='--', alpha=0.7, label='Limiar Médio')
+        # Graph 1: Flowering probabilities over time
+        # Graph 1: Flowering probabilities over time
+        # Graph 1: Flowering probabilities over time
+        axes[0, 0].plot(df['date'], probabilities, 'b-', linewidth=2, label='Flowering Probability')
+        axes[0, 0].axhline(y=0.7, color='r', linestyle='--', alpha=0.7, label='High Threshold')
+        axes[0, 0].axhline(y=0.5, color='orange', linestyle='--', alpha=0.7, label='Medium Threshold')
         axes[0, 0].scatter([peak_analysis['peak_date']], [peak_analysis['peak_probability']], 
-                           color='red', s=100, zorder=5, label='Pico')
-        axes[0, 0].set_title('Probabilidades de Floração')
-        axes[0, 0].set_ylabel('Probabilidade')
+                           color='red', s=100, zorder=5, label='Peak')
+        axes[0, 0].set_title('Flowering Probabilities')
+        axes[0, 0].set_ylabel('Probability')
         axes[0, 0].legend()
         axes[0, 0].grid(True, alpha=0.3)
         
-        # Gráfico 2: Temperatura vs Probabilidade
+        # Graph 2: Temperature vs Probability
+        # Graph 2: Temperature vs Probability
+        # Graph 2: Temperature vs Probability
         axes[0, 1].scatter(df['temperature_2m'], probabilities, alpha=0.6, c=probabilities, cmap='RdYlBu')
-        axes[0, 1].set_title('Temperatura vs Probabilidade de Floração')
-        axes[0, 1].set_xlabel('Temperatura (°C)')
-        axes[0, 1].set_ylabel('Probabilidade')
+        axes[0, 1].set_title('Temperature vs Flowering Probability')
+        axes[0, 1].set_xlabel('Temperature (°C)')
+        axes[0, 1].set_ylabel('Probability')
         axes[0, 1].grid(True, alpha=0.3)
         
-        # Gráfico 3: Umidade vs Probabilidade
+        # Graph 3: Humidity vs Probability
+        # Graph 3: Humidity vs Probability
         axes[1, 0].scatter(df['relative_humidity_2m'], probabilities, alpha=0.6, c=probabilities, cmap='RdYlBu')
-        axes[1, 0].set_title('Umidade vs Probabilidade de Floração')
-        axes[1, 0].set_xlabel('Umidade Relativa (%)')
-        axes[1, 0].set_ylabel('Probabilidade')
+        axes[1, 0].set_title('Humidity vs Flowering Probability')
+        axes[1, 0].set_xlabel('Relative Humidity (%)')
+        axes[1, 0].set_ylabel('Probability')
         axes[1, 0].grid(True, alpha=0.3)
         
-        # Gráfico 4: Distribuição das probabilidades
+        # Graph 4: Distribution of probabilities
+        # Graph 4: Distribution of probabilities
         axes[1, 1].hist(probabilities, bins=20, alpha=0.7, color='skyblue', edgecolor='black')
         axes[1, 1].axvline(x=np.mean(probabilities), color='red', linestyle='--', 
-                          label=f'Média: {np.mean(probabilities):.2f}')
-        axes[1, 1].set_title('Distribuição das Probabilidades')
-        axes[1, 1].set_xlabel('Probabilidade')
-        axes[1, 1].set_ylabel('Frequência')
+                          label=f'Mean: {np.mean(probabilities):.2f}')
+        axes[1, 1].set_title('Distribution of Probabilities')
+        axes[1, 1].set_xlabel('Probability')
+        axes[1, 1].set_ylabel('Frequency')
         axes[1, 1].legend()
         axes[1, 1].grid(True, alpha=0.3)
         
@@ -299,35 +305,35 @@ class BloomingForecast:
         plt.savefig('outputs/blooming_forecast.png', dpi=300, bbox_inches='tight')
         plt.close()
         
-        print("Visualizações salvas em: outputs/blooming_forecast.png")
+        print("Visualizations saved in: outputs/blooming_forecast.png")
 
 def main():
-    """Função principal para testar o sistema de previsão"""
-    print("Sistema de Previsão de Floração")
+    """Function principal to test the prediction system"""
+    print("Flowering Prediction System")
     print("=" * 40)
     
-    # Coordenadas de exemplo
+    # Example coordinates
     latitude = 38.6275
     longitude = -92.5666
     
     forecast_system = BloomingForecast()
     
-    # Gera previsão
+    # Generate forecast
     result = forecast_system.generate_forecast(latitude, longitude, days_ahead=14)
     
     if "error" in result:
-        print(f"Erro: {result['error']}")
+        print(f"Error: {result['error']}")
     else:
-        print("Previsão gerada com sucesso!")
-        print(f"Pico de floração: {result['peak_analysis']['peak_date']}")
-        print(f"Probabilidade máxima: {result['peak_analysis']['peak_probability']:.1%}")
-        print(f"Confiança: {result['peak_analysis']['confidence']}")
+        print("Forecast generated successfully!")
+        print(f"Peak of flowering: {result['peak_analysis']['peak_date']}")
+        print(f"Maximum probability: {result['peak_analysis']['peak_probability']:.1%}")
+        print(f"Confidence: {result['peak_analysis']['confidence']}")
         
         print("\nInsights:")
         for insight in result['insights']:
             print(f"- {insight}")
         
-        print("\nResumo:")
+        print("\nSummary:")
         for finding in result['summary']['key_findings']:
             print(f"- {finding}")
 

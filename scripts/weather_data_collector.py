@@ -1,5 +1,5 @@
 """
-Weather data collection system for flowering prediction
+Weather data collection system for Blooming prediction
 """
 
 import openmeteo_requests

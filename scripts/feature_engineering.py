@@ -1,5 +1,5 @@
 """
-Feature engineering system for weather data and flowering prediction
+Feature engineering system for weather data and Blooming prediction
 """
 
 import pandas as pd
@@ -473,7 +473,7 @@ class FeatureEngineer:
         print("Creating basic weather features...")
         df = self.create_basic_weather_features(df)
         
-        print("Creating basic flowering features...")
+        print("Creating basic Blooming features...")
         df = self.create_basic_blooming_features(df)
         
         print("Creating seasonal features...")

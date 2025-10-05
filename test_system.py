@@ -1,5 +1,5 @@
 """
-Test script to validate the complete flowering prediction system
+Test script to validate the complete Blooming prediction system
 """
 
 import os
@@ -248,7 +248,7 @@ def test_file_structure():
 def main():
     """Executa todos os testes"""
     print("=" * 60)
-    print("COMPLETE FLOWERING PREDICTION SYSTEM TEST")
+    print("COMPLETE Blooming PREDICTION SYSTEM TEST")
     print("=" * 60)
     
     tests = [

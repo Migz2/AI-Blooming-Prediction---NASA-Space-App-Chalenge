@@ -1,5 +1,5 @@
 """
-Flowering prediction system configuration
+Blooming prediction system configuration
 """
 
 # API Configuration
@@ -28,7 +28,7 @@ MIN_DAYS_AHEAD = 1
 BLOOM_SCORE_THRESHOLD_HIGH = 0.7
 BLOOM_SCORE_THRESHOLD_MEDIUM = 0.5
 
-# Ideal conditions for flowering
+# Ideal conditions for Blooming
 IDEAL_TEMPERATURE_MIN = 15
 IDEAL_TEMPERATURE_MAX = 25
 IDEAL_HUMIDITY_MIN = 40
