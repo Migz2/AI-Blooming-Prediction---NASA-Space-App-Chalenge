@@ -1,5 +1,5 @@
 """
-Script de teste para validar o sistema completo de previsão de floração
+Test script to validate the complete flowering prediction system
 """
 
 import os
@@ -248,16 +248,16 @@ def test_file_structure():
 def main():
     """Executa todos os testes"""
     print("=" * 60)
-    print("TESTE COMPLETO DO SISTEMA DE PREVISÃO DE FLORAÇÃO")
+    print("COMPLETE FLOWERING PREDICTION SYSTEM TEST")
     print("=" * 60)
     
     tests = [
-        ("Estrutura de Arquivos", test_file_structure),
-        ("Coletor de Dados Meteorológicos", test_weather_collector),
+        ("File Structure", test_file_structure),
+        ("Weather Data Collector", test_weather_collector),
         ("Feature Engineering", test_feature_engineering),
-        ("Treinamento do Modelo", test_model_training),
-        ("Sistema de Previsão", test_forecast_system),
-        ("API Flask", test_api)
+        ("Model Training", test_model_training),
+        ("Forecast System", test_forecast_system),
+        ("Flask API", test_api)
     ]
     
     results = []

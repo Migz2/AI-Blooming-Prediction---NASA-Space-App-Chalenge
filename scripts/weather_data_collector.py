@@ -1,5 +1,5 @@
 """
-Sistema de coleta de dados meteorológicos para previsão de floração
+Weather data collection system for flowering prediction
 """
 
 import openmeteo_requests
@@ -13,7 +13,7 @@ import json
 
 class WeatherDataCollector:
     def __init__(self, cache_dir='.cache'):
-        """Inicializa o coletor de dados meteorológicos"""
+        """Initialize the weather data collector"""
         self.cache_session = requests_cache.CachedSession(cache_dir, expire_after=-1)
         self.retry_session = retry(self.cache_session, retries=5, backoff_factor=0.2)
         self.openmeteo = openmeteo_requests.Client(session=self.retry_session)

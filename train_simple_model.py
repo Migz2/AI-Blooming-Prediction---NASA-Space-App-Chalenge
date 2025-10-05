@@ -1,5 +1,5 @@
 """
-Script para treinar um modelo simplificado usando apenas features básicas e confiáveis
+Script to train a simplified model using only basic and reliable features
 """
 
 import os
@@ -16,14 +16,14 @@ from scripts.feature_engineering import FeatureEngineer
 from scripts.blooming_predictor import BloomingPredictor
 
 def create_simple_features(df):
-    """Cria apenas features básicas e confiáveis"""
+    """Creates only basic and reliable features"""
     df = df.copy()
     
-    # Converte data para datetime se necessário
+    # Convert date to datetime if necessary
     if not pd.api.types.is_datetime64_any_dtype(df['date']):
         df['date'] = pd.to_datetime(df['date'])
     
-    # Features temporais básicas
+    # Basic temporal features
     df['hour'] = df['date'].dt.hour
     df['day_of_year'] = df['date'].dt.dayofyear
     df['month'] = df['date'].dt.month
@@ -202,101 +202,101 @@ def create_simple_features(df):
 def main():
     """Pipeline de treinamento simplificado"""
     print("=" * 60)
-    print("TREINAMENTO DE MODELO SIMPLIFICADO")
+    print("SIMPLIFIED MODEL TRAINING")
     print("=" * 60)
     
-    # Configurações
+    # Configuration
     latitude = 38.6275  # Jefferson City, MO
     longitude = -92.5666
     
-    # 1. Coleta de dados meteorológicos
-    print("\n1. COLETANDO DADOS METEOROLÓGICOS...")
+    # 1. Weather data collection
+    print("\n1. COLLECTING WEATHER DATA...")
     print("-" * 40)
     
     weather_collector = WeatherDataCollector()
     
-    # Coleta dados dos últimos 30 dias para treinamento
+    # Collect data from the last 30 days for training
     end_date = datetime.now().strftime('%Y-%m-%d')
     start_date = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
     
-    print(f"Coletando dados de {start_date} até {end_date}")
+    print(f"Collecting data from {start_date} to {end_date}")
     historical_data = weather_collector.collect_weather_data(
         latitude, longitude, start_date, end_date
     )
     
     if historical_data is None:
-        print("❌ Erro: Não foi possível coletar dados meteorológicos")
+        print("❌ Error: Could not collect weather data")
         return False
     
-    print(f"✅ Dados coletados: {len(historical_data)} registros")
+    print(f"✅ Data collected: {len(historical_data)} records")
     
-    # 2. Processamento simplificado
-    print("\n2. PROCESSANDO DADOS COM FEATURES SIMPLIFICADAS...")
+    # 2. Simplified processing
+    print("\n2. PROCESSING DATA WITH SIMPLIFIED FEATURES...")
     print("-" * 40)
     
     processed_data = create_simple_features(historical_data)
     
-    print(f"✅ Features processadas: {processed_data.shape}")
-    print(f"✅ Total de features: {len(processed_data.columns) - 1}")  # -1 para excluir 'date'
+    print(f"✅ Features processed: {processed_data.shape}")
+    print(f"✅ Total features: {len(processed_data.columns) - 1}")  # -1 to exclude 'date'
     
-    # Salva dados processados
+    # Save processed data
     processed_data.to_csv('data/simple_processed_features.csv', index=False)
-    print("✅ Dados processados salvos")
+    print("✅ Processed data saved")
     
-    # 3. Treinamento do modelo
-    print("\n3. TREINANDO MODELO SIMPLIFICADO...")
+    # 3. Model training
+    print("\n3. TRAINING SIMPLIFIED MODEL...")
     print("-" * 40)
     
     predictor = BloomingPredictor()
     X, y = predictor.prepare_training_data(processed_data)
     
-    print(f"✅ Dados preparados: {X.shape[0]} amostras, {X.shape[1]} features")
+    print(f"✅ Data prepared: {X.shape[0]} samples, {X.shape[1]} features")
     
-    # Treina modelos
+    # Train models
     scores = predictor.train_models(X, y)
     
-    print(f"✅ Melhor modelo: {predictor.best_model_name}")
+    print(f"✅ Best model: {predictor.best_model_name}")
     
-    # Salva modelo
+    # Save model
     predictor.save_model('models/simple_blooming_model.pkl')
     
-    # 4. Teste do modelo
-    print("\n4. TESTANDO MODELO...")
+    # 4. Model testing
+    print("\n4. TESTING MODEL...")
     print("-" * 40)
     
-    # Coleta dados de previsão
+    # Collect forecast data
     forecast_data = weather_collector.collect_forecast_data(latitude, longitude, days=7)
     
     if forecast_data is not None:
-        # Processa dados de previsão
+        # Process forecast data
         forecast_processed = create_simple_features(forecast_data)
         
-        # Faz predição
+        # Make prediction
         probabilities = predictor.predict_blooming_probability(forecast_processed)
         
-        # Encontra pico
+        # Find peak
         peak_idx = np.argmax(probabilities)
         peak_date = forecast_processed.iloc[peak_idx]['date']
         peak_probability = probabilities[peak_idx]
         
-        print(f"✅ Previsão gerada para 7 dias")
-        print(f"✅ Pico de floração: {peak_date} (probabilidade: {peak_probability:.1%})")
-        print(f"✅ Probabilidade média: {np.mean(probabilities):.1%}")
-        print(f"✅ Probabilidade máxima: {np.max(probabilities):.1%}")
+        print(f"✅ Prediction generated for 7 days")
+        print(f"✅ Peak flowering: {peak_date} (probability: {peak_probability:.1%})")
+        print(f"✅ Average probability: {np.mean(probabilities):.1%}")
+        print(f"✅ Maximum probability: {np.max(probabilities):.1%}")
         
-        # Salva previsão
+        # Save prediction
         forecast_result = forecast_processed.copy()
         forecast_result['bloom_probability'] = probabilities
         forecast_result.to_csv('outputs/simple_forecast_result.csv', index=False)
-        print("✅ Resultado da previsão salvo")
+        print("✅ Prediction result saved")
     
     print("\n" + "=" * 60)
-    print("TREINAMENTO SIMPLIFICADO CONCLUÍDO COM SUCESSO!")
+    print("SIMPLIFIED TRAINING COMPLETED SUCCESSFULLY!")
     print("=" * 60)
-    print("Próximos passos:")
-    print("1. Execute 'python app.py' para iniciar a API")
-    print("2. Acesse http://localhost:5000 para usar a interface web")
-    print("3. Use a API para fazer previsões personalizadas")
+    print("Next steps:")
+    print("1. Run 'python app.py' to start the API")
+    print("2. Access http://localhost:5000 to use the web interface")
+    print("3. Use the API to make custom predictions")
     
     return True
 
@@ -304,13 +304,13 @@ if __name__ == "__main__":
     try:
         success = main()
         if success:
-            print("\n🎉 Sistema simplificado pronto para uso!")
-        else:
-            print("\n❌ Erro no treinamento")
-            sys.exit(1)
+        print("\n🎉 Simplified system ready for use!")
+    else:
+        print("\n❌ Training error")
+        sys.exit(1)
     except KeyboardInterrupt:
-        print("\n\n⚠️ Treinamento interrompido pelo usuário")
+        print("\n\n⚠️ Training interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Erro inesperado: {e}")
+        print(f"\n❌ Unexpected error: {e}")
         sys.exit(1)

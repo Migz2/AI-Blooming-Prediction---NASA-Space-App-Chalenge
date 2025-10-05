@@ -1,5 +1,5 @@
 """
-Sistema de feature engineering para dados meteorológicos e previsão de floração
+Feature engineering system for weather data and flowering prediction
 """
 
 import pandas as pd
@@ -10,18 +10,18 @@ warnings.filterwarnings('ignore')
 
 class FeatureEngineer:
     def __init__(self):
-        """Inicializa o sistema de feature engineering"""
+        """Initialize the feature engineering system"""
         self.feature_columns = []
         
     def create_weather_features(self, df):
         """
-        Cria features derivadas dos dados meteorológicos
+        Creates features derived from weather data
         
         Args:
-            df (pd.DataFrame): DataFrame com dados meteorológicos
+            df (pd.DataFrame): DataFrame with weather data
             
         Returns:
-            pd.DataFrame: DataFrame com features adicionais
+            pd.DataFrame: DataFrame with additional features
         """
         df = df.copy()
         
@@ -110,20 +110,20 @@ class FeatureEngineer:
         """
         df = df.copy()
         
-        # Converte data para datetime se necessário
+        # Convert date to datetime if necessary
         if not pd.api.types.is_datetime64_any_dtype(df['date']):
             df['date'] = pd.to_datetime(df['date'])
         
-        # Features temporais básicas
+        # Basic temporal features
         df['hour'] = df['date'].dt.hour
         df['day_of_year'] = df['date'].dt.dayofyear
         df['month'] = df['date'].dt.month
         df['day_of_week'] = df['date'].dt.dayofweek
         df['is_weekend'] = df['day_of_week'].isin([5, 6]).astype(int)
         
-        # Features de temperatura básicas (sem data leakage)
+        # Basic temperature features (no data leakage)
         if 'temperature_2m' in df.columns:
-            # Usa apenas dados passados
+            # Use only past data
             df['temp_avg_24h'] = df['temperature_2m'].rolling(window=24, min_periods=1).mean().shift(1)
             df['temp_std_24h'] = df['temperature_2m'].rolling(window=24, min_periods=1).std().shift(1)
             df['temp_trend'] = df['temperature_2m'].diff().shift(1)
@@ -470,34 +470,34 @@ class FeatureEngineer:
         Returns:
             pd.DataFrame: DataFrame com todas as features processadas
         """
-        print("Criando features meteorológicas básicas...")
+        print("Creating basic weather features...")
         df = self.create_basic_weather_features(df)
         
-        print("Criando features de floração básicas...")
+        print("Creating basic flowering features...")
         df = self.create_basic_blooming_features(df)
         
-        print("Criando features sazonais...")
+        print("Creating seasonal features...")
         df = self.create_seasonal_features(df)
         
-        print("Criando features de lag...")
+        print("Creating lag features...")
         df = self.create_lag_features(df)
         
-        print("Criando features de janela deslizante...")
+        print("Creating rolling window features...")
         # Usa apenas colunas básicas e confiáveis (SEM bloom_score para evitar data leakage)
         basic_cols = ['temperature_2m', 'relative_humidity_2m', 'precipitation']
         available_cols = [col for col in basic_cols if col in df.columns]
         
-        print(f"Colunas básicas para janela deslizante: {available_cols}")
+        print(f"Basic columns for rolling window: {available_cols}")
         
         if available_cols:
             df = self.create_rolling_features(df, available_cols)
         else:
-            print("⚠️ Nenhuma coluna básica encontrada para features de janela deslizante")
+            print("⚠️ No basic columns found for rolling window features")
         
-        # CRÍTICO: Remove bloom_score para evitar data leakage
+        # CRITICAL: Remove bloom_score to avoid data leakage
         if 'bloom_score' in df.columns:
             df = df.drop('bloom_score', axis=1)
-            print("⚠️ Removido bloom_score para evitar data leakage")
+            print("⚠️ Removed bloom_score to avoid data leakage")
         
         # Remove colunas com muitos valores nulos
         df = df.dropna(thresh=len(df) * 0.5, axis=1)
