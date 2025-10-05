@@ -308,9 +308,3 @@ if __name__ == "__main__":
     else:
         print("\n❌ Training error")
         sys.exit(1)
-    except KeyboardInterrupt:
-        print("\n\n⚠️ Training interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
-        sys.exit(1)

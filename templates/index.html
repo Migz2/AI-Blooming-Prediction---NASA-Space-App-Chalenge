@@ -33,6 +33,39 @@
         .result-card {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 200px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(240, 147, 251, 0.4);
+        }
+        
+        .result-card .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        /* Responsive adjustments for cards */
+        @media (max-width: 768px) {
+            .result-card {
+                height: 180px;
+                margin-bottom: 1rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .result-card {
+                height: 160px;
+            }
         }
         .chart-container {
             position: relative;
@@ -158,47 +191,49 @@
                 </h2>
             </div>
             
-            <!-- Summary Cards -->
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card result-card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-calendar-alt feature-icon"></i>
-                        <h5>Peak Flowering</h5>
-                        <h3 id="peak-date">-</h3>
-                        <p class="mb-0">Predicted date</p>
+            <!-- Summary Cards - Side by Side -->
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card result-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-calendar-alt feature-icon"></i>
+                            <h5>Peak Flowering</h5>
+                            <h3 id="peak-date">-</h3>
+                            <p class="mb-0">Predicted date</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card result-card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-percentage feature-icon"></i>
-                        <h5>Maximum Probability</h5>
-                        <h3 id="peak-probability">-</h3>
-                        <p class="mb-0">Blooming chance</p>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card result-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-percentage feature-icon"></i>
+                            <h5>Maximum Probability</h5>
+                            <h3 id="peak-probability">-</h3>
+                            <p class="mb-0">Blooming chance</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card result-card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-trending-up feature-icon"></i>
-                        <h5>Trend</h5>
-                        <h3 id="trend">-</h3>
-                        <p class="mb-0">Flowering direction</p>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card result-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-trending-up feature-icon"></i>
+                            <h5>Trend</h5>
+                            <h3 id="trend">-</h3>
+                            <p class="mb-0">Flowering direction</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="card result-card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-shield-alt feature-icon"></i>
-                        <h5>Confidence</h5>
-                        <h3 id="confidence">-</h3>
-                        <p class="mb-0">Confidence level</p>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card result-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-shield-alt feature-icon"></i>
+                            <h5>Confidence</h5>
+                            <h3 id="confidence">-</h3>
+                            <p class="mb-0">Confidence level</p>
+                        </div>
                     </div>
                 </div>
             </div>
