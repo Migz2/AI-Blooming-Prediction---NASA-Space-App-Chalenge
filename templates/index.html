@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowering Prediction - AI System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        .loading {
+            display: none;
+        }
+        .result-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 2rem 0;
+        }
+        .alert-custom {
+            border-radius: 15px;
+            border: none;
+        }
+        .btn-custom {
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="fas fa-seedling me-3"></i>
+                        AI Flowering Prediction
+                    </h1>
+                    <p class="lead mb-4">
+                        Intelligent system that predicts the probability of flower blooming 
+                        in the next 14 days and identifies the peak flowering period using machine learning.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-light btn-custom" onclick="scrollToForm()">
+                            <i class="fas fa-rocket me-2"></i>Start Prediction
+                        </button>
+                        <button class="btn btn-outline-light btn-custom" onclick="showInfo()">
+                            <i class="fas fa-info-circle me-2"></i>Learn More
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <i class="fas fa-chart-line" style="font-size: 8rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <!-- Form Section -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card" id="form-section">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            Prediction Configuration
+                        </h2>
+                        
+                        <form id="forecast-form">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="latitude" class="form-label">Latitude</label>
+                                    <input type="number" class="form-control" id="latitude" 
+                                           placeholder="Ex: 38.6275" step="0.0001" required>
+                                    <div class="form-text">Latitude coordinate of the location</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="longitude" class="form-label">Longitude</label>
+                                    <input type="number" class="form-control" id="longitude" 
+                                           placeholder="Ex: -92.5666" step="0.0001" required>
+                                    <div class="form-text">Longitude coordinate of the location</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="days_ahead" class="form-label">Days for Prediction</label>
+                                <select class="form-control" id="days_ahead">
+                                    <option value="7">7 days</option>
+                                    <option value="14" selected>14 days</option>
+                                    <option value="21">21 days</option>
+                                    <option value="30">30 days</option>
+                                </select>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-custom">
+                                    <i class="fas fa-magic me-2"></i>
+                                    Generate Prediction
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Loading -->
+                        <div class="loading text-center mt-4" id="loading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <p class="mt-2">Processing weather data and generating prediction...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="row mt-5" id="results-section" style="display: none;">
+            <div class="col-12">
+                <h2 class="text-center mb-4">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Prediction Results
+                </h2>
+            </div>
+            
+            <!-- Summary Cards -->
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card result-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-alt feature-icon"></i>
+                        <h5>Peak Flowering</h5>
+                        <h3 id="peak-date">-</h3>
+                        <p class="mb-0">Predicted date</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card result-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-percentage feature-icon"></i>
+                        <h5>Maximum Probability</h5>
+                        <h3 id="peak-probability">-</h3>
+                        <p class="mb-0">Blooming chance</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card result-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-trending-up feature-icon"></i>
+                        <h5>Trend</h5>
+                        <h3 id="trend">-</h3>
+                        <p class="mb-0">Flowering direction</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card result-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shield-alt feature-icon"></i>
+                        <h5>Confidence</h5>
+                        <h3 id="confidence">-</h3>
+                        <p class="mb-0">Confidence level</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chart -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Flowering Probability Chart
+                        </h5>
+                        <div class="chart-container">
+                            <canvas id="forecast-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Insights -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Insights and Recommendations
+                        </h5>
+                        <div id="insights-list">
+                            <!-- Insights serão inseridos aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Items -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-tasks me-2"></i>
+                            Recommended Actions
+                        </h5>
+                        <div id="action-items">
+                            <!-- Ações serão inseridas aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Alert -->
+        <div class="row mt-4" id="error-section" style="display: none;">
+            <div class="col-12">
+                <div class="alert alert-danger alert-custom">
+                    <h4 class="alert-heading">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Prediction Error
+                    </h4>
+                    <p id="error-message">An error occurred while processing the prediction.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2>System Features</h2>
+                <p class="lead">Advanced technology for accurate flowering prediction</p>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-brain feature-icon"></i>
+                        <h5>Machine Learning</h5>
+                        <p>Advanced AI algorithms for weather pattern analysis and flowering prediction.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-cloud-sun feature-icon"></i>
+                        <h5>Weather Data</h5>
+                        <p>Integration with weather APIs for accurate temperature, humidity, and precipitation data.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-pie feature-icon"></i>
+                        <h5>Predictive Analysis</h5>
+                        <p>Prediction of flowering probabilities and identification of peak flowering with high accuracy.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                <h5>Flowering Prediction System</h5>
+                <p>Powered by Machine Learning & Weather Data</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p>&copy; 2025 NASA Space App Challenge</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let forecastChart = null;
+
+        // Form submission
+        document.getElementById('forecast-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+            const days_ahead = parseInt(document.getElementById('days_ahead').value);
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results-section').style.display = 'none';
+            document.getElementById('error-section').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/forecast', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        latitude: latitude,
+                        longitude: longitude,
+                        days_ahead: days_ahead
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'Erro desconhecido');
+                }
+            } catch (error) {
+                showError('Erro de conexão: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+
+        function displayResults(data) {
+            // Update summary cards
+            document.getElementById('peak-date').textContent = 
+                new Date(data.peak_analysis.peak_date).toLocaleDateString('pt-BR');
+            document.getElementById('peak-probability').textContent = 
+                (data.peak_analysis.peak_probability * 100).toFixed(1) + '%';
+            document.getElementById('trend').textContent = 
+                data.peak_analysis.trend.charAt(0).toUpperCase() + data.peak_analysis.trend.slice(1);
+            document.getElementById('confidence').textContent = 
+                data.peak_analysis.confidence.charAt(0).toUpperCase() + data.peak_analysis.confidence.slice(1);
+            
+            // Create chart
+            createChart(data);
+            
+            // Display insights
+            displayInsights(data.insights);
+            
+            // Display action items
+            displayActionItems(data.summary.action_items);
+            
+            // Show results
+            document.getElementById('results-section').style.display = 'block';
+            document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function createChart(data) {
+            const ctx = document.getElementById('forecast-chart').getContext('2d');
+            
+            if (forecastChart) {
+                forecastChart.destroy();
+            }
+            
+            const dates = data.forecast_data.map(d => new Date(d.date));
+            const probabilities = data.probabilities.map(p => p * 100);
+            
+            forecastChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates.map(d => d.toLocaleDateString('en-US')),
+                    datasets: [{
+                        label: 'Flowering Probability (%)',
+                        data: probabilities,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Probability (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayInsights(insights) {
+            const container = document.getElementById('insights-list');
+            container.innerHTML = '';
+            
+            insights.forEach(insight => {
+                const div = document.createElement('div');
+                div.className = 'alert alert-info alert-custom mb-2';
+                div.innerHTML = `<i class="fas fa-info-circle me-2"></i>${insight}`;
+                container.appendChild(div);
+            });
+        }
+
+        function displayActionItems(actions) {
+            const container = document.getElementById('action-items');
+            container.innerHTML = '';
+            
+            actions.forEach(action => {
+                const div = document.createElement('div');
+                div.className = 'd-flex align-items-center mb-2';
+                div.innerHTML = `
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span>${action}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function showError(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-section').style.display = 'block';
+            document.getElementById('error-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function scrollToForm() {
+            document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showInfo() {
+            alert('Flowering prediction system using machine learning and real-time weather data.');
+        }
+
+        // Set default coordinates (Jefferson City, MO)
+        document.getElementById('latitude').value = '38.6275';
+        document.getElementById('longitude').value = '-92.5666';
+    </script>
+</body>
+</html>

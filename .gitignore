@@ -1,0 +1,125 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Data files
+data/*.csv
+data/*.json
+data/*.pkl
+data/*.joblib
+data/*.h5
+data/*.hdf5
+
+# Model files
+models/*.pkl
+models/*.joblib
+models/*.h5
+models/*.hdf5
+models/*.json
+
+# Output files
+outputs/
+out/
+results/
+*.log
+
+# Features
+features/
+*.feather
+*.parquet
+
+# Cache
+.cache/
+*.cache
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# API keys and secrets
+.env
+config.ini
+secrets.json
+api_keys.txt
+
+# Logs
+logs/
+*.log
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Machine Learning specific
+*.model
+*.weights
+checkpoints/
+wandb/
+mlruns/
+
+# Large files
+*.zip
+*.tar.gz
+*.rar
+*.7z
