@@ -6,7 +6,9 @@
     <title>Flowering Prediction - AI System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         .hero-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -66,6 +68,56 @@
             .result-card {
                 height: 160px;
             }
+        }
+        
+        /* Map styling */
+        #blooming-map {
+            border: 2px solid #e9ecef;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            height: 500px;
+            min-height: 500px;
+        }
+        
+        .map-popup {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .map-popup h6 {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .map-popup .probability {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .map-popup .peak-date {
+            font-size: 1.1rem;
+            color: #6c757d;
+        }
+        
+        .worldview-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .worldview-btn:hover {
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
         }
         .chart-container {
             position: relative;
@@ -238,8 +290,21 @@
                 </div>
             </div>
             
+            <!-- Interactive Map -->
+            <div class="col-12 mt-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-map-marked-alt me-2"></i>
+                            Interactive Blooming Map
+                        </h5>
+                        <div id="blooming-map" style="height: 500px; border-radius: 10px;"></div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Chart -->
-            <div class="col-12">
+            <div class="col-12 mt-4">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">
@@ -356,6 +421,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let forecastChart = null;
+        let bloomingMap = null;
 
         // Form submission
         document.getElementById('forecast-form').addEventListener('submit', async function(e) {
@@ -387,6 +453,7 @@
                 
                 if (response.ok) {
                     displayResults(data);
+                    updateMap(data, latitude, longitude);
                 } else {
                     showError(data.error || 'Erro desconhecido');
                 }
@@ -420,6 +487,13 @@
             // Show results
             document.getElementById('results-section').style.display = 'block';
             document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+            
+            // Ensure map is properly sized when results are shown
+            setTimeout(() => {
+                if (bloomingMap) {
+                    bloomingMap.invalidateSize();
+                }
+            }, 500);
         }
 
         function createChart(data) {
@@ -515,6 +589,156 @@
         function showInfo() {
             alert('Flowering prediction system using machine learning and real-time weather data.');
         }
+
+        // Initialize map
+        function initializeMap() {
+            if (bloomingMap) {
+                bloomingMap.remove();
+            }
+            
+            // Wait for the container to be visible
+            setTimeout(() => {
+                bloomingMap = L.map('blooming-map', {
+                    center: [38.6275, -92.5666],
+                    zoom: 6,
+                    zoomControl: true,
+                    attributionControl: true
+                });
+                
+                // Primary tile layer
+                const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 18,
+                    minZoom: 1
+                });
+                
+                // Fallback tile layer
+                const cartoLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '© OpenStreetMap contributors, © CARTO',
+                    maxZoom: 18,
+                    minZoom: 1
+                });
+                
+                // Add primary layer
+                osmLayer.addTo(bloomingMap);
+                
+                // If primary fails, try fallback
+                osmLayer.on('tileerror', function() {
+                    bloomingMap.removeLayer(osmLayer);
+                    cartoLayer.addTo(bloomingMap);
+                });
+                
+                // Force map to invalidate size and redraw
+                setTimeout(() => {
+                    bloomingMap.invalidateSize();
+                }, 100);
+            }, 100);
+        }
+
+        // Update map with prediction data
+        function updateMap(data, latitude, longitude) {
+            if (!bloomingMap) {
+                initializeMap();
+            }
+            
+            // Clear existing markers
+            bloomingMap.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    bloomingMap.removeLayer(layer);
+                }
+            });
+            
+            // Extract data safely with fallbacks
+            const peakProbability = data.peak_analysis?.peak_probability || data.peak_probability || 0;
+            const peakDate = data.peak_analysis?.peak_date || data.peak_date || new Date().toISOString();
+            const trend = data.peak_analysis?.trend || data.trend || 'Stable';
+            const confidence = data.peak_analysis?.confidence || data.confidence || 'Medium';
+            
+            // Add marker for the prediction location
+            const marker = L.circleMarker([latitude, longitude], {
+                radius: 15,
+                fillColor: getProbabilityColor(peakProbability),
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(bloomingMap);
+            
+            // Format date safely
+            let formattedDate = 'Invalid Date';
+            try {
+                const date = new Date(peakDate);
+                if (!isNaN(date.getTime())) {
+                    formattedDate = date.toLocaleDateString();
+                }
+            } catch (e) {
+                console.error('Date formatting error:', e);
+            }
+            
+            // Create popup content with safe data
+            const popupContent = `
+                <div class="map-popup">
+                    <h6><i class="fas fa-seedling me-2"></i>Blooming Prediction</h6>
+                    <div class="probability">
+                        <strong>14-day Probability: ${(peakProbability * 100).toFixed(1)}%</strong>
+                    </div>
+                    <div class="peak-date">
+                        <strong>Peak Date: ${formattedDate}</strong>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}</small>
+                    </div>
+                    <a href="${generateWorldviewUrl(latitude, longitude)}" target="_blank" class="worldview-btn">
+                        <i class="fas fa-external-link-alt me-1"></i>View in NASA Worldview
+                    </a>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent).openPopup();
+            
+            // Fit map to show the marker
+            bloomingMap.setView([latitude, longitude], 8);
+        }
+
+        // Get color based on probability
+        function getProbabilityColor(probability) {
+            if (probability >= 0.8) return '#dc3545'; // Red - High
+            if (probability >= 0.6) return '#fd7e14'; // Orange - Medium-High
+            if (probability >= 0.4) return '#ffc107'; // Yellow - Medium
+            if (probability >= 0.2) return '#20c997'; // Teal - Low-Medium
+            return '#6c757d'; // Gray - Low
+        }
+
+        // Generate NASA Worldview URL
+        function generateWorldviewUrl(lat, lon) {
+            const currentDate = new Date().toISOString().split('T')[0];
+            const historicalDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            
+            // Calculate bounding box (small area around the point)
+            const latOffset = 0.1;
+            const lonOffset = 0.1;
+            
+            const v1 = lon - lonOffset;
+            const v2 = lat - latOffset;
+            const v3 = lon + lonOffset;
+            const v4 = lat + latOffset;
+            
+            return `https://worldview.earthdata.nasa.gov/?v=${v1},${v2},${v3},${v4}&l=Reference_Labels_15m,Coastlines_15m,VIIRS_NOAA20_CorrectedReflectance_TrueColor,VIIRS_SNPP_CorrectedReflectance_TrueColor,MODIS_Terra_CorrectedReflectance_TrueColor&lg=true&l1=Reference_Labels_15m,Coastlines_15m,VIIRS_NOAA20_CorrectedReflectance_TrueColor,VIIRS_SNPP_CorrectedReflectance_TrueColor,MODIS_Terra_CorrectedReflectance_TrueColor&lg1=false&ca=true&t=${currentDate}-T07%3A22%3A59Z&t1=${historicalDate}-T12%3A00%3A00Z`;
+        }
+
+        // Initialize map on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMap();
+        });
+        
+        // Handle window resize to fix map display
+        window.addEventListener('resize', function() {
+            if (bloomingMap) {
+                setTimeout(() => {
+                    bloomingMap.invalidateSize();
+                }, 100);
+            }
+        });
 
         // Set default coordinates (Jefferson City, MO)
         document.getElementById('latitude').value = '38.6275';

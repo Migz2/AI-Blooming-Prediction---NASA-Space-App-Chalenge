@@ -5,6 +5,8 @@ Sistema de previsão de pico de floração e análise de tendências
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend to avoid tkinter issues
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scripts.blooming_predictor import BloomingPredictor
@@ -85,7 +87,12 @@ class BloomingForecast:
         # Encontra o pico
         peak_idx = np.argmax(probabilities)
         peak_date = df.iloc[peak_idx]['date']
-        peak_probability = probabilities[peak_idx]
+        # Converte para string ISO se for datetime
+        if hasattr(peak_date, 'isoformat'):
+            peak_date = peak_date.isoformat()
+        elif hasattr(peak_date, 'strftime'):
+            peak_date = peak_date.strftime('%Y-%m-%d')
+        peak_probability = float(probabilities[peak_idx])
         
         # Encontra períodos de alta probabilidade
         high_prob_threshold = 0.7
@@ -104,13 +111,13 @@ class BloomingForecast:
         
         return {
             "peak_date": peak_date,
-            "peak_probability": float(peak_probability),
-            "peak_day": peak_idx + 1,
+            "peak_probability": peak_probability,
+            "peak_day": int(peak_idx + 1),
             "avg_probability": float(avg_probability),
             "max_probability": float(max_probability),
             "min_probability": float(min_probability),
-            "high_probability_days": len(high_prob_indices),
-            "high_probability_dates": [df.iloc[i]['date'] for i in high_prob_indices],
+            "high_probability_days": int(len(high_prob_indices)),
+            "high_probability_dates": [df.iloc[i]['date'].isoformat() if hasattr(df.iloc[i]['date'], 'isoformat') else str(df.iloc[i]['date']) for i in high_prob_indices],
             "trend": trend,
             "best_windows": best_windows,
             "confidence": self.calculate_confidence(probabilities)
